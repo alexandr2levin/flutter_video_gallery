@@ -16,21 +16,55 @@ class Videos extends StatefulWidget {
 
 class _VideosState extends State<Videos> {
 
+  VideosManager get _videosManager => widget._videosManager;
+
   @override
   Widget build(BuildContext context) {
-    var videos = List.generate(9, (i) {
-      return VideoInfo(
-        "$i",
-        File("foo"),
-        DateTime.now()
-      );
-    });
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Videos'),
       ),
-      body: Scrollbar(
+      body: StreamBuilder(
+        stream: _videosManager.observeVideos(),
+        builder: (context, AsyncSnapshot<List<VideoInfo>> asyncSnapshot) {
+          print('has data: "${asyncSnapshot.data}"');
+          if(asyncSnapshot.hasError) {
+            print('error: ' + asyncSnapshot.error.toString());
+            return errorBody();
+          } else if(asyncSnapshot.hasData) {
+            return contentBody(asyncSnapshot.data);
+          } else {
+            return waitBody();
+          }
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: toRecorder,
+        child: Icon(Icons.videocam),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+    );
+  }
+
+  Widget errorBody() {
+    return Center(
+      child: Text("Error while loading videos"),
+    );
+  }
+
+  Widget waitBody() {
+    return Center(
+      child: Text("One moment..."),
+    );
+  }
+
+  Widget contentBody(List<VideoInfo> videos) {
+    if(videos.isEmpty) {
+      return Center(
+        child: Text("No videos recorded yet"),
+      );
+    }
+    return Scrollbar(
         child: OrientationBuilder(
           builder: (context, orientation) {
             var gridHorCount = orientation == Orientation.portrait ? 2 : 3;
@@ -47,22 +81,24 @@ class _VideosState extends State<Videos> {
                   onTap: () {
                     print('tap on video "$video"');
                   },
+                  onLongPress: () {
+                    _videosManager.removeVideo(video.id);
+                    Scaffold.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Video removed")
+                      ),
+                    );
+                  },
                 );
               },
             );
           },
         )
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: toRecorder,
-        child: Icon(Icons.videocam),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
   void toRecorder() {
-
+    Navigator.of(context).pushNamed('/recorder');
   }
 
 }

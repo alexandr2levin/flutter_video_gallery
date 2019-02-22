@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_video_gallery/domain/videos_manager.dart';
 
 class VideoItem extends StatelessWidget {
-  VideoItem(this._videoInfo, {this.onTap});
+  VideoItem(this._videoInfo, {this.onTap, this.onLongPress});
 
   final VideoInfo _videoInfo;
   final GestureTapCallback onTap;
+  final GestureLongPressCallback onLongPress;
 
   @override
   Widget build(BuildContext context) {
@@ -18,6 +19,7 @@ class VideoItem extends StatelessWidget {
       color: Colors.blueGrey[200],
       child: InkWell(
         onTap: onTap,
+        onLongPress: onLongPress,
         splashColor: Colors.white30,
         highlightColor: Colors.white30,
         child: Stack(
