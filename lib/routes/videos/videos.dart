@@ -58,8 +58,8 @@ class _VideosState extends State<Videos> {
     );
   }
 
-  Widget contentBody(List<VideoInfo> videos) {
-    if(videos.isEmpty) {
+  Widget contentBody(List<VideoInfo> videosInfo) {
+    if(videosInfo.isEmpty) {
       return Center(
         child: Text("No videos recorded yet"),
       );
@@ -69,31 +69,35 @@ class _VideosState extends State<Videos> {
           builder: (context, orientation) {
             var gridHorCount = orientation == Orientation.portrait ? 2 : 3;
             return GridView.builder(
-              itemCount: videos.length,
+              itemCount: videosInfo.length,
               padding: EdgeInsets.all(4.0),
               gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: gridHorCount,
               ),
               itemBuilder: (context, i) {
-                var video = videos[i];
+                var videoInfo = videosInfo[i];
                 return VideoItem(
-                  video,
+                  videoInfo,
                   onTap: () {
-                    print('tap on video "$video"');
+                    print('tap on video "$videoInfo"');
                   },
                   onLongPress: () {
-                    _videosManager.removeVideo(video.id);
-                    Scaffold.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text("Video removed")
-                      ),
-                    );
+                    removeVideo(context, videoInfo);
                   },
                 );
               },
             );
           },
         )
+    );
+  }
+  
+  void removeVideo(BuildContext context, VideoInfo videoInfo) {
+    _videosManager.removeVideo(videoInfo.id);
+    Scaffold.of(context).showSnackBar(
+        SnackBar(
+            content: Text("Removed")
+        ),
     );
   }
 

@@ -7,14 +7,14 @@ import 'package:path_provider/path_provider.dart';
 
 class VideosManager {
 
-  var _videosSubject = BehaviorSubject<List<VideoInfo>>();
+  var _videosInfoSubject = BehaviorSubject<List<VideoInfo>>();
 
-  List<VideoInfo> _videos;
+  List<VideoInfo> _videosInfo;
   var uuid = Uuid();
 
   // video file's name pattern is "id_datetime.mp4"
   Future<void> _initializeIfNot() async {
-    if(_videos != null) return;
+    if(_videosInfo != null) return;
     _loadVideosInfoFromStorage();
     /*
     reason: File system watching is not supported on Android platform
@@ -35,10 +35,10 @@ class VideosManager {
         .map((fileSystemEntry) {
       return File(fileSystemEntry.path);
     });
-    _videos = videoFiles.map((file) => VideoInfo.fromFile(file)).toList();
-    print('videos count "${_videos.length}"');
+    _videosInfo = videoFiles.map((file) => VideoInfo.fromFile(file)).toList();
+    print('videos count "${_videosInfo.length}"');
 
-    _videosSubject.add(_videos);
+    _videosInfoSubject.add(_videosInfo);
   }
 
   Future<VideoInfo> createNewVideoInfo() async {
@@ -63,7 +63,7 @@ class VideosManager {
 
   Future<VideoInfo> videoInfo(String id) async {
     await _initializeIfNot();
-    return _videos.firstWhere((info) => info.id == id);
+    return _videosInfo.firstWhere((info) => info.id == id);
   }
 
   Future<void> notifyRecorded() async {
@@ -72,11 +72,11 @@ class VideosManager {
 
   Stream<List<VideoInfo>> observeVideos() async* {
     await _initializeIfNot();
-    yield* _videosSubject;
+    yield* _videosInfoSubject;
   }
 
   void dispose() {
-    _videosSubject.close();
+    _videosInfoSubject.close();
   }
 
 }
