@@ -21,12 +21,18 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      initialRoute: '/videos',
       onGenerateRoute: (routeSettings) {
         // temporarily workaround for passing arguments
         // should be replaced with https://github.com/flutter/flutter/pull/27058
         // when it will be merged to stable
         var name = routeSettings.name;
+
+        if(name == '/') {
+          // represent root as '/videos' for easier arguments parsing
+          // note: we can't set MaterialApp.initialRoute to '/videos'
+          //       as it don't work with onGenerateRoute
+          name = '/videos';
+        }
 
         // I miss Kotlin's "when" expression ;(
         if(name == '/videos') {
