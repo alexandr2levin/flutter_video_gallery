@@ -4,13 +4,15 @@ import 'package:path/path.dart';
 import 'package:uuid/uuid.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
 
 class VideosManager {
 
-  var _videosInfoSubject = BehaviorSubject<List<VideoInfo>>();
+  final _uuid = Uuid();
+  final _ffmpeg = FlutterFFmpeg();
 
+  final _videosInfoSubject = BehaviorSubject<List<VideoInfo>>();
   List<VideoInfo> _videosInfo;
-  var uuid = Uuid();
 
   // video file's name pattern is "id_datetime.mp4"
   Future<void> _initializeIfNot() async {
@@ -28,8 +30,7 @@ class VideosManager {
   }
 
   Future<void> _loadVideosInfoFromStorage() async {
-    var appDir = await getApplicationDocumentsDirectory();
-    var videosDir = Directory('${appDir.path}/videos/');
+    var videosDir = await _videosDir();
     if(!videosDir.existsSync()) videosDir.createSync();
     var videoFiles = videosDir.listSync(followLinks: false)
         .map((fileSystemEntry) {
@@ -41,14 +42,36 @@ class VideosManager {
     _videosInfoSubject.add(_videosInfo);
   }
 
-  Future<VideoInfo> createNewVideoInfo() async {
+  Future<Directory> _videosDir() async {
     var appDir = await getApplicationDocumentsDirectory();
+    return Directory('${appDir.path}/videos/');
+  }
 
-    var id = uuid.v1();
+  Future<void> trimVideo(String videoId, Duration from, Duration to) async {
+    var tempDir = await getTemporaryDirectory();
+    var info = await videoInfo(videoId);
+
+    var input = info.file.path;
+    var output = "${tempDir.path}/tmp_${basename(input)}";
+    var fromStr = from.toString();
+    var lengthStr = (to - from).toString();
+
+    var command = 'ffmpeg -ss $fromStr -i $input -c copy -t $lengthStr $output';
+    print('executing command "$command"');
+    await _ffmpeg.execute(command);
+
+    await info.file.delete();
+    await File(output).copy(input);
+  }
+
+  Future<VideoInfo> createNewVideoInfo() async {
+    var videosDir = await _videosDir();
+
+    var id = _uuid.v1();
     var nowUtc = DateTime.now().toUtc();
-    var file = File('${appDir.path}/videos/${id}_${nowUtc.toIso8601String()}.mp4');
+    var file = File('${videosDir.path}/${id}_${nowUtc.toIso8601String()}.mp4');
     return VideoInfo(
-      uuid.v1(),
+      _uuid.v1(),
       file,
       nowUtc,
     );
