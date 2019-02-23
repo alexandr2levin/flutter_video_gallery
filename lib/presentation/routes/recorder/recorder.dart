@@ -6,7 +6,7 @@ import 'package:camera/camera.dart';
 class Recorder extends StatefulWidget {
   Recorder(this._videosManager);
 
-  VideosManager _videosManager;
+  final VideosManager _videosManager;
 
   @override
   State<StatefulWidget> createState() => _RecorderState();
@@ -21,6 +21,9 @@ class _RecorderState extends State<Recorder> {
 
   var _recording = false;
 
+  // use busy when we don't want to handle user's input
+  var _busy = false;
+
   @override
   void initState() {
     super.initState();
@@ -28,17 +31,24 @@ class _RecorderState extends State<Recorder> {
   }
 
   void initialize() async {
-    // wait for transition to complete to avoid lags
-    await Future.delayed(Duration(milliseconds: 500));
-
+    _busy = true;
     var cameras = await availableCameras();
-    _controller = CameraController(cameras[0], ResolutionPreset.high);
-    _controller.initialize().then((_) {
-      if (!mounted) {
-        return;
-      }
-      setState(() {});
-    });
+    _controller = CameraController(cameras[0], ResolutionPreset.medium);
+    _controller
+        ..addListener(() {
+          if(_recording != _controller.value.isRecordingVideo) {
+            setState(() {
+              _recording = _controller.value.isRecordingVideo;
+            });
+          }
+        })
+        ..initialize().then((_) {
+          _busy = false;
+          if (!mounted) {
+            return;
+          }
+          setState(() {});
+        });
   }
 
   @override
@@ -85,9 +95,10 @@ class _RecorderState extends State<Recorder> {
   }
 
   void switchRecording() async {
-    _recording = !_recording;
+    if(_busy) return;
+    _busy = true;
 
-    if(_recording) {
+    if(!_recording) {
       var videoInfo = await _videosManager.createNewVideoInfo();
       await _controller.startVideoRecording(videoInfo.file.path);
     } else {
@@ -95,7 +106,10 @@ class _RecorderState extends State<Recorder> {
       await _videosManager.notifyRecorded();
     }
 
-    setState(() {});
+    await Future.delayed(Duration(seconds: 1));
+    // keep busy for a second to avoid lag on tap spam
+
+    _busy = false;
   }
 
 }

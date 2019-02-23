@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_video_gallery/domain/videos_manager.dart';
-import 'package:flutter_video_gallery/routes/videos/video_item.dart';
+import 'package:flutter_video_gallery/presentation//routes/videos/video_item.dart';
 
 
 class Videos extends StatefulWidget {
@@ -79,7 +79,7 @@ class _VideosState extends State<Videos> {
                 return VideoItem(
                   videoInfo,
                   onTap: () {
-                    print('tap on video "$videoInfo"');
+                    openVideo(videoInfo);
                   },
                   onLongPress: () {
                     removeVideo(context, videoInfo);
@@ -91,12 +91,17 @@ class _VideosState extends State<Videos> {
         )
     );
   }
+
+  void openVideo(VideoInfo videoInfo) {
+    Navigator.of(context).pushNamed('/videos/${videoInfo.id}');
+  }
   
   void removeVideo(BuildContext context, VideoInfo videoInfo) {
     _videosManager.removeVideo(videoInfo.id);
     Scaffold.of(context).showSnackBar(
         SnackBar(
-            content: Text("Removed")
+          content: Text("Removed"),
+          duration: Duration(seconds: 1),
         ),
     );
   }

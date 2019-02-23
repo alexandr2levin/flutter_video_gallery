@@ -1,16 +1,23 @@
-# flutter_video_gallery
+# Flutter Video Gallery
 
-Flutter Video Gallery app
+App that can record, store and play recorded videos.
 
-## Getting Started
+## Dependencies
 
-This project is a starting point for a Flutter application.
+Dart
+ * [rxdart](https://pub.dartlang.org/packages/rxdart) – for BehaviourSubject implementation
+ * [path](https://pub.dartlang.org/packages/path) – to handle video's paths
+ * [uuid](https://pub.dartlang.org/packages/uuid) – to generate uids for videos
+ 
+Flutter specific
+ * [path_provider](https://pub.dartlang.org/packages/path_provider) – to access to app's data dir
+ * [camera](https://pub.dartlang.org/packages/camera) – to show the camera preview and record the video
+ * [video_player](https://pub.dartlang.org/packages/video_player) – to play the video
+ 
+## Architecture
 
-A few resources to get you started if this is your first Flutter project:
+App is splitted into two layers.
 
-- [Lab: Write your first Flutter app](https://flutter.io/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.io/docs/cookbook)
+ * domain – there is where business logic lives
+ * presentation – there is where ui logic lives
 
-For help getting started with Flutter, view our 
-[online documentation](https://flutter.io/docs), which offers tutorials, 
-samples, guidance on mobile development, and a full API reference.
