@@ -1,23 +1,52 @@
 # Flutter Video Gallery
 
-App that can record, store and play recorded videos.
+Приложение, которое позволяет записывать, воспроизводить и редактировать записанные видео.
 
 ## Dependencies
 
 Dart
- * [rxdart](https://pub.dartlang.org/packages/rxdart) – for BehaviourSubject implementation
- * [path](https://pub.dartlang.org/packages/path) – to handle video's paths
- * [uuid](https://pub.dartlang.org/packages/uuid) – to generate uids for videos
- 
+ * [rxdart](https://pub.dartlang.org/packages/rxdart) – реализация BehaviorSubject
+ * [path](https://pub.dartlang.org/packages/path) – для удобной работы с путями
+ * [uuid](https://pub.dartlang.org/packages/uuid) – генерацирует уникальные id для видео
+
 Flutter specific
- * [path_provider](https://pub.dartlang.org/packages/path_provider) – to access to app's data dir
- * [camera](https://pub.dartlang.org/packages/camera) – to show the camera preview and record the video
- * [video_player](https://pub.dartlang.org/packages/video_player) – to play the video
- 
-## Architecture
+ * [path_provider](https://pub.dartlang.org/packages/path_provider) – API для получения пути к приватной data-папке приложения
+ * [camera](https://pub.dartlang.org/packages/camera) – превью камеры и запись видео
+ * [video_player](https://pub.dartlang.org/packages/video_player) – для воспроизведения видео
+ * [flutter_ffmpeg](https://pub.dartlang.org/packages/flutter_ffmpeg) – для редактирования видео
+ * [share_extend](https://pub.dartlang.org/packages/share_extend) – для шеринга видео
+ * [flutter_range_slider](https://pub.dartlang.org/packages/flutter_range_slider) – UI виджет
 
-App is splitted into two layers.
+## Архитектура моих приложений
 
- * domain – there is where business logic lives
- * presentation – there is where ui logic lives
+Обычно я делю свои приложения на 3 слоя: data, domain, presentation. Связывал их с помощью rx-фреймворка. Вертикальный data-flow, все дела.
+
+### Data-layer
+
+Предоставляет API для создания, получения, обновления, удаления и наблюдения за изменениями данных. Работает с внешними источниками, мапит данные в максимально удобный для работы с ними формат. Может инкапсулировать логику кеширования данных.
+
+###Domain-layer
+
+Взаимодействует только с data-layer. Реулизует бизнес логику, ее я разделяю на компоненты – Manager-ы.
+
+Например, представим приложение "Записная книжка".
+
+* `NotificationManager` – предоставляет API для работы с оповещениями. 
+
+* `NotesManager` – предоставляет API для создания, удаления, изменения записок, under the hood перенаправляет запросы в data-layer. Использует `NotificationManager`, чтобы планировать оповещения для записок с напоминалкой. Может делать дополнительный маппинг данных.
+
+###Presentation
+
+Взаимодействует только с domain-layer-ом. В Android, чаще всего тут использовал MVP с immutable состоянием для View.
+
+##Мысли
+
+* Т.к. текущее приложение небольшое – я опустил data-слой и реализовал работу с данными в domain-layer.
+
+* Описанная выше архитектура работала для меня в Android-среде. Это такой мутант, вышедший из идей Clean Architecture. Он идеально подходил для решаемых мною задач и позволял создавать быстрые, расширяемые приложения. Но! Я за эксперементы и всякое новое. Собственно, мутант – потому что эта архитектура с каждым новым проектом немного дорабатывалась. Например, я отказался от инверсии зависимостей.
+
+* В случае с Flutter, дополнительно, можно использовать паттерн bloc для вынесения логики экрана(группы экранов) в отдельный компонент. [Самый популярный bloc-пакет](https://pub.dartlang.org/packages/bloc) для flutter сейчас предлагает redux-like решение с монолитным состоянием для каждого bloc-а. Я бы как раз использовал эти bloc-и в качестве viewmodel как раз для реализации screen-specific логики с монолитным состоянием. На это намекают и примеры использования пакета. Крутая идея, но я пока не пробовал. Т.к. у вас проект, в котором важную роль играет видео-контент, использование монолитных состояний может вредить, т.к. они – immutable, а значит каждое изменение позиции курсора на видео будет вынуждать нас часто создавать новый объект состояния, тем самым нагружая GC.
+
+* Во Flutter, как и в Android, presentation-слой является еще и composition-слоем. За что я люблю Flutter – система вложенных друг в друга виджетов позволяет нам создавать очень логичный di-граф.
+* В этом апе мы работаем с видео, т.е. работа с данными – файлом, происходит в presentation-layer-е. Довольно интересный кейс. В такие моменты задумываешься вообще о необходимости деления приложения на слои. Я решил эту проблему так. Реализовал в domain-слое метод, генерирующий новый конечный путь для видео-файла. Presentation-слой в нужный момент просто просит domain-layer предоставить новый путь и начинает писать в него видео. Это решение-компромисс, потому что вынесение тяжелой работы с видео на нижние слои – слишком сильная борьба с фреймворком, которая тут, по моему мнению – неуместна.
 

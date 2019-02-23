@@ -1,4 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="wtf.levin.fluttervideogallery">
 
     <!-- The INTERNET permission is required for development. Specifically,
@@ -14,8 +15,10 @@
          FlutterApplication and put your custom class here. -->
     <application
         android:name="io.flutter.app.FlutterApplication"
-        android:label="flutter_video_gallery"
-        android:icon="@mipmap/ic_launcher">
+        android:label="Video Gallery"
+        android:icon="@mipmap/ic_launcher"
+        tools:replace="android:icon,android:label"
+        >
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"

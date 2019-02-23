@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_video_gallery/domain/videos_manager.dart';
-import 'package:flutter_video_gallery/presentation//routes/videos/video_item.dart';
+import 'package:flutter_video_gallery/presentation/routes/videos/video_item.dart';
 
 
 class Videos extends StatefulWidget {

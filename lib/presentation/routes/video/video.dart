@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_video_gallery/domain/videos_manager.dart';
 import 'package:video_player/video_player.dart';
-//import 'package:flutter_range_slider/flutter_range_slider.dart';
+import 'package:flutter_range_slider/flutter_range_slider.dart';
 
 class Video extends StatefulWidget {
   Video(this._videosManager, this._videoId);
@@ -29,7 +29,9 @@ class VideoState extends State<Video> {
   Duration _trimEnd;
 
   // use busy when we don't want to handle user's input
-  var _busy = false;
+  get _busy => _loadingController || _trimming;
+  var _loadingController = false;
+  var _trimming = false;
 
   @override
   void initState() {
@@ -38,7 +40,8 @@ class VideoState extends State<Video> {
   }
 
   void _initializeController() async {
-    _busy = true;
+    _loadingController = true;
+    setState(() {});
 
     var info = await _videosManager.videoInfo(widget._videoId);
     _controller = VideoPlayerController.file(info.file)
@@ -53,32 +56,30 @@ class VideoState extends State<Video> {
         }
 
         setState(() {
-          _trimStart = Duration.zero;
-          _trimEnd = _controller.value.duration;
-
-          if(position > _trimEnd) {
-            _trimEnd = position;
-          }
-          if(position < _trimStart) {
-            _trimEnd = position;
-          }
-
           _isPlaying = isPlaying;
           _duration = duration;
           _position = position;
         });
       })
       ..initialize().then((_) {
-        _busy = false;
+        _loadingController = false;
+        _trimStart = Duration.zero;
+        _trimEnd = _controller.value.duration;
         // Ensure the first frame is shown after the video is initialized,
         // even before the play button has been pressed.
         setState(() {});
       });
   }
 
+  void _reinitializeController() {
+    _controller?.dispose();
+    _controller = null;
+    _initializeController();
+  }
+
   @override
   void deactivate() {
-    _controller.setVolume(0.0);
+    _controller?.setVolume(0.0);
     super.deactivate();
   }
 
@@ -108,7 +109,8 @@ class VideoState extends State<Video> {
             left: 0.0,
             bottom: 0.0,
             child: _bottomControls(),
-          )
+          ),
+          _busy ? _busyLayer() : Container()
         ],
       );
     }
@@ -116,6 +118,19 @@ class VideoState extends State<Video> {
     return Container(
       color: Colors.black,
       child: content,
+    );
+  }
+
+  Widget _busyLayer() {
+    return Container(
+      color: Colors.black38,
+      child: Center(
+        child: SizedBox(
+            width: 48.0,
+            height: 48.0,
+            child: CircularProgressIndicator()
+        )
+      ),
     );
   }
   
@@ -149,7 +164,7 @@ class VideoState extends State<Video> {
         child: Column(
           children: <Widget>[
             _bottomControlsSeek(),
-            //_bottomControlsTrim(),
+            _bottomControlsTrim(),
           ],
         ),
       ),
@@ -159,38 +174,50 @@ class VideoState extends State<Video> {
   Widget _bottomControlsSeek() {
     return Row(
       children: <Widget>[
-        Slider(
-          value: _position.inMilliseconds.toDouble(),
-          min: 0.0,
-          max: _duration.inMilliseconds.toDouble(),
-          onChanged: (value) {
-            _seek(Duration(milliseconds: (value).toInt()));
-          },
+        Expanded(
+          child: Slider(
+            value: _position.inMilliseconds.toDouble(),
+            min: 0.0,
+            max: _duration.inMilliseconds.toDouble(),
+            onChanged: (value) {
+              _seek(Duration(milliseconds: (value).toInt()));
+            },
+          ),
         ),
-        SizedBox(height: 48.0)
+        IconButton(
+          icon: Icon(Icons.share, color: Colors.white),
+          onPressed: _share,
+        ),
       ],
     );
   }
 
-  /*
   Widget _bottomControlsTrim() {
-    print('trimStart1 "$_trimStart"');
-    print('trimEnd1 "$_trimEnd"');
-    print('position1 "$_position"');
-    print('duration1 "$_duration"');
+    print('trimStart "$_trimStart"');
+    print('trimEnd "$_trimEnd"');
+    print('position "$_position"');
+    print('duration "$_duration"');
     return Row(
       children: <Widget>[
-        RangeSlider(
-          lowerValue: _trimStart.inMilliseconds.toDouble(),
-          upperValue: _trimEnd.inMilliseconds.toDouble(),
-          min: 0.0,
-          max: _duration.inMilliseconds.toDouble(),
+        Expanded(
+          child: RangeSlider(
+            lowerValue: _trimStart.inMilliseconds.toDouble(),
+            upperValue: _trimEnd.inMilliseconds.toDouble(),
+            min: 0.0,
+            max: _duration.inMilliseconds.toDouble(),
+            onChanged: (lowerValue, upperValue) {
+              _trimStart = Duration(milliseconds: lowerValue.toInt());
+              _trimEnd = Duration(milliseconds: upperValue.toInt());
+            },
+          ),
         ),
-        SizedBox(height: 48.0)
+        IconButton(
+          icon: Icon(Icons.content_cut, color: Colors.white),
+          onPressed: _trim,
+        )
       ],
     );
   }
-  */
 
   void _switchPlayPause() {
     if(_busy) return;
@@ -204,6 +231,21 @@ class VideoState extends State<Video> {
   void _seek(Duration duration) {
     if(_busy) return;
     _controller.seekTo(duration);
+  }
+
+  void _trim() async {
+    setState(() {
+      _trimming = true;
+    });
+    await _videosManager.trimVideo(widget._videoId, _trimStart, _trimEnd);
+    setState(() {
+      _trimming = false;
+    });
+    _reinitializeController();
+  }
+
+  void _share() async {
+    await _videosManager.share(widget._videoId);
   }
 
 }

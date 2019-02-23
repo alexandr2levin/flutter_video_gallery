@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_video_gallery/domain/videos_manager.dart';
 import 'package:flutter_video_gallery/presentation/routes/recorder/recorder.dart';
-import 'package:flutter_video_gallery/presentation//routes/video/video.dart';
-import 'package:flutter_video_gallery/presentation//routes/videos/videos.dart';
+import 'package:flutter_video_gallery/presentation/routes/video/video.dart';
+import 'package:flutter_video_gallery/presentation/routes/videos/videos.dart';
 
 class App extends StatelessWidget {
   App(this._videosManager);

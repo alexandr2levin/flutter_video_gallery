@@ -4,12 +4,13 @@ import 'package:path/path.dart';
 import 'package:uuid/uuid.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:path_provider/path_provider.dart';
-//import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
+import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
+import 'package:share_extend/share_extend.dart';
 
 class VideosManager {
 
   final _uuid = Uuid();
-  //final _ffmpeg = FlutterFFmpeg();
+  final _ffmpeg = FlutterFFmpeg();
 
   final _videosInfoSubject = BehaviorSubject<List<VideoInfo>>();
   List<VideoInfo> _videosInfo;
@@ -46,7 +47,11 @@ class VideosManager {
     return Directory('${appDir.path}/videos/');
   }
 
-  /*
+  Future<void> share(String videoId) async {
+    var info = await videoInfo(videoId);
+    ShareExtend.share(info.file.path, 'file');
+  }
+
   Future<void> trimVideo(String videoId, Duration from, Duration to) async {
     var tempDir = await getTemporaryDirectory();
     var info = await videoInfo(videoId);
@@ -54,16 +59,20 @@ class VideosManager {
     var input = info.file.path;
     var output = "${tempDir.path}/tmp_${basename(input)}";
     var fromStr = from.toString();
-    var lengthStr = (to - from).toString();
+    var durationStr = (to - from).toString();
 
-    var command = 'ffmpeg -ss $fromStr -i $input -c copy -t $lengthStr $output';
-    print('executing command "$command"');
-    await _ffmpeg.execute(command);
+    var command = '-i $input -ss $fromStr -t $durationStr $output';
+    print('execute command "$command"');
+    var result = await _ffmpeg.execute(command);
+    var isSuccess = result == 0;
+    print('result: "$result"');
 
-    await info.file.delete();
-    await File(output).copy(input);
+    if(isSuccess) {
+      await info.file.delete();
+      await File(output).copy(input);
+      await File(output).delete();
+    }
   }
-  */
 
   Future<VideoInfo> createNewVideoInfo() async {
     var videosDir = await _videosDir();
@@ -126,6 +135,5 @@ class VideoInfo {
   String toString() {
     return 'VideoInfo{id: $id, file: $file, recordedAt: $recordedAt}';
   }
-
 
 }

@@ -5,7 +5,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.2.1'
+        classpath 'com.android.tools.build:gradle:3.3.1'
     }
 }
 
@@ -22,6 +22,18 @@ subprojects {
 }
 subprojects {
     project.evaluationDependsOn(':app')
+}
+subprojects { subproject ->
+    // force compileSdkVersion to 28 for all subprojects
+    // even for subprojects that are linked by flutter
+    // helpful ref: https://stackoverflow.com/questions/24494077/gradle-force-build-tools-version-on-third-party-libraries
+    afterEvaluate{
+        if((subproject.plugins.hasPlugin('android') || subproject.plugins.hasPlugin('android-library'))) {
+            android {
+                compileSdkVersion 28
+            }
+        }
+    }
 }
 
 task clean(type: Delete) {
