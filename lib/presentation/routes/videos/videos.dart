@@ -27,7 +27,6 @@ class _VideosState extends State<Videos> {
       body: StreamBuilder(
         stream: _videosManager.observeVideos(),
         builder: (context, AsyncSnapshot<List<VideoInfo>> asyncSnapshot) {
-          print('has data: "${asyncSnapshot.data}"');
           if(asyncSnapshot.hasError) {
             print('error: ' + asyncSnapshot.error.toString());
             return errorBody();

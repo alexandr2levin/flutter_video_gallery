@@ -4,12 +4,12 @@ import 'package:path/path.dart';
 import 'package:uuid/uuid.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
+//import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
 
 class VideosManager {
 
   final _uuid = Uuid();
-  final _ffmpeg = FlutterFFmpeg();
+  //final _ffmpeg = FlutterFFmpeg();
 
   final _videosInfoSubject = BehaviorSubject<List<VideoInfo>>();
   List<VideoInfo> _videosInfo;
@@ -37,7 +37,6 @@ class VideosManager {
       return File(fileSystemEntry.path);
     });
     _videosInfo = videoFiles.map((file) => VideoInfo.fromFile(file)).toList();
-    print('videos count "${_videosInfo.length}"');
 
     _videosInfoSubject.add(_videosInfo);
   }
@@ -47,6 +46,7 @@ class VideosManager {
     return Directory('${appDir.path}/videos/');
   }
 
+  /*
   Future<void> trimVideo(String videoId, Duration from, Duration to) async {
     var tempDir = await getTemporaryDirectory();
     var info = await videoInfo(videoId);
@@ -63,6 +63,7 @@ class VideosManager {
     await info.file.delete();
     await File(output).copy(input);
   }
+  */
 
   Future<VideoInfo> createNewVideoInfo() async {
     var videosDir = await _videosDir();

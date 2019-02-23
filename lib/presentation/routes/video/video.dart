@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_video_gallery/domain/videos_manager.dart';
 import 'package:video_player/video_player.dart';
+//import 'package:flutter_range_slider/flutter_range_slider.dart';
 
 class Video extends StatefulWidget {
   Video(this._videosManager, this._videoId);
@@ -23,6 +24,9 @@ class VideoState extends State<Video> {
   bool _isPlaying = false;
   Duration _duration;
   Duration _position;
+
+  Duration _trimStart;
+  Duration _trimEnd;
 
   // use busy when we don't want to handle user's input
   var _busy = false;
@@ -49,6 +53,16 @@ class VideoState extends State<Video> {
         }
 
         setState(() {
+          _trimStart = Duration.zero;
+          _trimEnd = _controller.value.duration;
+
+          if(position > _trimEnd) {
+            _trimEnd = position;
+          }
+          if(position < _trimStart) {
+            _trimEnd = position;
+          }
+
           _isPlaying = isPlaying;
           _duration = duration;
           _position = position;
@@ -132,7 +146,20 @@ class VideoState extends State<Video> {
       color: Colors.black38,
       child: Padding(
         padding: EdgeInsets.all(8.0),
-        child: Slider(
+        child: Column(
+          children: <Widget>[
+            _bottomControlsSeek(),
+            //_bottomControlsTrim(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _bottomControlsSeek() {
+    return Row(
+      children: <Widget>[
+        Slider(
           value: _position.inMilliseconds.toDouble(),
           min: 0.0,
           max: _duration.inMilliseconds.toDouble(),
@@ -140,9 +167,30 @@ class VideoState extends State<Video> {
             _seek(Duration(milliseconds: (value).toInt()));
           },
         ),
-      )
+        SizedBox(height: 48.0)
+      ],
     );
   }
+
+  /*
+  Widget _bottomControlsTrim() {
+    print('trimStart1 "$_trimStart"');
+    print('trimEnd1 "$_trimEnd"');
+    print('position1 "$_position"');
+    print('duration1 "$_duration"');
+    return Row(
+      children: <Widget>[
+        RangeSlider(
+          lowerValue: _trimStart.inMilliseconds.toDouble(),
+          upperValue: _trimEnd.inMilliseconds.toDouble(),
+          min: 0.0,
+          max: _duration.inMilliseconds.toDouble(),
+        ),
+        SizedBox(height: 48.0)
+      ],
+    );
+  }
+  */
 
   void _switchPlayPause() {
     if(_busy) return;
