@@ -17,6 +17,10 @@ Flutter specific
  * [share_extend](https://pub.dartlang.org/packages/share_extend) – для шеринга видео
  * [flutter_range_slider](https://pub.dartlang.org/packages/flutter_range_slider) – ui виджет, используемый при trim-инге
 
+## Важно
+
+Пакеты [video_player](https://pub.dartlang.org/packages/video_player) и [camera](https://pub.dartlang.org/packages/camera) работют на честном слове, не на всех устройствах. По уму их нужно форкануть и править. Как минимум – увеличить битрейт при записи видео.
+
 ## Архитектура моих приложений
 
 Обычно я делю свои приложения на 3 слоя: data, domain, presentation. Связываю их с помощью rx-фреймворка. Вертикальный data-flow, все дела.
