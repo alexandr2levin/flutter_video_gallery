@@ -19,6 +19,7 @@ class VideoState extends State<Video> {
 
   VideosManager get _videosManager => widget._videosManager;
 
+  VideoPlayerController _prevController;
   VideoPlayerController _controller;
 
   bool _isPlaying = false;
@@ -47,6 +48,9 @@ class VideoState extends State<Video> {
     _controller = VideoPlayerController.file(info.file)
       ..setLooping(true)
       ..addListener(() {
+        if (_controller.value.hasError) {
+          print(_controller.value.errorDescription);
+        }
         var isPlaying = _controller.value.isPlaying;
         var duration = _controller.value.duration;
         var position = _controller.value.position;
@@ -62,6 +66,10 @@ class VideoState extends State<Video> {
         });
       })
       ..initialize().then((_) {
+        // see _reinitializeController for explanations
+        _prevController?.dispose();
+        _prevController = null;
+
         _loadingController = false;
         _trimStart = Duration.zero;
         _trimEnd = _controller.value.duration;
@@ -72,8 +80,12 @@ class VideoState extends State<Video> {
   }
 
   void _reinitializeController() {
-    _controller?.dispose();
+    // persist prevController to dispose it lately
+    // if we dispose it here we will have an exception
+    // 'A VideoPlayerController was used after being disposed.'
+    _prevController = _controller;
     _controller = null;
+    setState(() {});
     _initializeController();
   }
 
@@ -85,6 +97,7 @@ class VideoState extends State<Video> {
 
   @override
   void dispose() {
+    _prevController?.dispose();
     _controller?.dispose();
     super.dispose();
   }
@@ -193,10 +206,6 @@ class VideoState extends State<Video> {
   }
 
   Widget _bottomControlsTrim() {
-    print('trimStart "$_trimStart"');
-    print('trimEnd "$_trimEnd"');
-    print('position "$_position"');
-    print('duration "$_duration"');
     return Row(
       children: <Widget>[
         Expanded(
