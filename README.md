@@ -2,6 +2,10 @@
 
 Приложение, которое позволяет записывать, воспроизводить и редактировать записанные видео.
 
+## Ссылки
+
+Trello-доска: https://trello.com/b/ORrBs6NJ/flutter-video-gallery
+
 ## Dependencies
 
 Dart
